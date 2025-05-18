@@ -2142,6 +2142,7 @@ class Program
 
     static Process selectedProcess = null;
     static int selectedProcessId = -1;
+    static bool finishBecauseOfPK = false;
     static void Main()
     {
         Debugger("Starting RealeraDX Auto-Potions...");
@@ -2291,6 +2292,10 @@ class Program
 
                 Thread.Sleep(1000);
 
+                if (finishBecauseOfPK)
+                {
+                    return;
+                }
                 if (f2ClickCount >= MAX_F2_CLICKS || curSoul <= 4 || (attempts >= 3 && curMana >= MANA_THRESHOLD))
                 {
                     attempts = 0;
@@ -3355,7 +3360,15 @@ class Program
             {
                 CheckForPause();
                 ReadMemoryValues();
+                if (curHP <= maxHP - 150)
+                {
+                    Debugger("[FIGHT] Probably attacked, escaping from tarantulas.");
+                    DoHealthManaChecks();
+                    finishBecauseOfPK = true;
+                    return;
+                }
                 DoHealthManaChecks();
+                
                 if (curSoul >= 178)
                 {
                     Debugger("[FIGHT] Soul limit reached, exiting fight");
