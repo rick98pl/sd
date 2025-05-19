@@ -654,6 +654,13 @@ class Program
             RequiredY = requiredY;
             RequiredZ = requiredZ;
 
+            // If any position requirements are specified, enable force position by default
+            if (RequiredX.HasValue || RequiredY.HasValue || RequiredZ.HasValue)
+            {
+                ForcePositionBeforeEachAttempt = true;
+                MaxRetries = 5; // Set default retry count for position validation
+            }
+
             // Automatically set validation for specific keys
             if (keyCode == VK_F12)
             {
@@ -674,11 +681,31 @@ class Program
         {
             string keyName = GetKeyName(KeyCode);
 
-            // Check if this key needs special validation
-            bool needsValidation = (KeyCode == VK_F12 && ExpectZChange) ||
-                                  ((KeyCode == VK_F7 || KeyCode == VK_F8) && ExpectXChange);
+            // Special handling for F7, F8, F12 remains the same
+            bool isSpecialKey = (KeyCode == VK_F12 && ExpectZChange) ||
+                                ((KeyCode == VK_F7 || KeyCode == VK_F8) && ExpectXChange);
 
-            if (!needsValidation)
+            // New condition for position validation on regular hotkeys
+            bool needsPositionValidation = !isSpecialKey && (RequiredX.HasValue || RequiredY.HasValue || RequiredZ.HasValue);
+
+            if (isSpecialKey)
+            {
+                // Existing special key validation for F7, F8, F12
+                if (KeyCode == VK_F12)
+                {
+                    return ExecuteF12WithZValidation(keyName);
+                }
+                else if (KeyCode == VK_F7 || KeyCode == VK_F8)
+                {
+                    return ExecuteF7F8WithXValidation(keyName);
+                }
+            }
+            else if (needsPositionValidation)
+            {
+                // New general position validation for other hotkeys
+                return ExecuteGeneralHotkeyWithPositionValidation(keyName);
+            }
+            else
             {
                 // Normal hotkey press without validation
                 Debugger($"Pressing {keyName}");
@@ -686,16 +713,104 @@ class Program
                 return true;
             }
 
-            // Special validation logic for F7, F8 (X-change) and F12 (Z-change)
-            if (KeyCode == VK_F12)
+            return false;
+        }
+
+        private bool ExecuteGeneralHotkeyWithPositionValidation(string keyName)
+        {
+            Debugger($"{keyName} with position validation");
+
+            // Store original position
+            ReadMemoryValues();
+            int originalX = currentX;
+            int originalY = currentY;
+            int originalZ = currentZ;
+            Debugger($"Original position: ({originalX}, {originalY}, {originalZ})");
+
+            int maxAttempts = MaxRetries;
+            int attempt = 1;
+
+            while (attempt <= maxAttempts)
             {
-                return ExecuteF12WithZValidation(keyName);
-            }
-            else if (KeyCode == VK_F7 || KeyCode == VK_F8)
-            {
-                return ExecuteF7F8WithXValidation(keyName);
+                // Check and fix position if needed
+                if (RequiredX.HasValue || RequiredY.HasValue || RequiredZ.HasValue)
+                {
+                    ReadMemoryValues();
+                    bool positionValid = true;
+                    string positionError = "";
+
+                    if (RequiredX.HasValue && currentX != RequiredX.Value)
+                    {
+                        positionValid = false;
+                        positionError += $"X:{currentX}≠{RequiredX.Value} ";
+                    }
+                    if (RequiredY.HasValue && currentY != RequiredY.Value)
+                    {
+                        positionValid = false;
+                        positionError += $"Y:{currentY}≠{RequiredY.Value} ";
+                    }
+                    if (RequiredZ.HasValue && currentZ != RequiredZ.Value)
+                    {
+                        positionValid = false;
+                        positionError += $"Z:{currentZ}≠{RequiredZ.Value} ";
+                    }
+
+                    if (!positionValid)
+                    {
+                        Debugger($"[{keyName}] Attempt {attempt}/{maxAttempts} - Position invalid: {positionError}");
+                        Debugger($"[{keyName}] Current: ({currentX}, {currentY}, {currentZ}), Required: ({RequiredX}, {RequiredY}, {RequiredZ})");
+
+                        if (ForcePositionBeforeEachAttempt)
+                        {
+                            // Fix position before attempting hotkey
+                            Debugger($"[{keyName}] Fixing position before attempt {attempt}");
+                            var positionFix = new MoveAction(RequiredX.Value, RequiredY.Value, RequiredZ.Value, 3000);
+
+                            if (positionFix.Execute() && positionFix.VerifySuccess())
+                            {
+                                ReadMemoryValues();
+                                Debugger($"[{keyName}] Position fixed: ({currentX}, {currentY}, {currentZ})");
+
+                                // Double-check position after fix
+                                if (currentX != RequiredX.Value || currentY != RequiredY.Value || currentZ != RequiredZ.Value)
+                                {
+                                    Debugger($"[{keyName}] Position fix failed on attempt {attempt}");
+                                    attempt++;
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                Debugger($"[{keyName}] Position fix failed on attempt {attempt}");
+                                attempt++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Debugger($"[{keyName}] Position invalid and fix disabled - skipping attempt {attempt}");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        Debugger($"[{keyName}] Attempt {attempt}/{maxAttempts} - Position valid: ({currentX}, {currentY}, {currentZ})");
+                    }
+                }
+
+                // Execute the hotkey
+                Debugger($"Attempt {attempt}/{maxAttempts} - Pressing {keyName} at position ({currentX}, {currentY}, {currentZ})");
+                SendKeyPress(KeyCode);
+
+                // Wait for the action to complete
+                Thread.Sleep(DelayMs);
+
+                // Return success after successful key press
+                Debugger($"Success! {keyName} pressed at required position");
+                return true;
             }
 
+            Debugger($"Failed to press {keyName} at required position after {maxAttempts} attempts");
             return false;
         }
 
@@ -903,12 +1018,15 @@ class Program
             return false;
         }
 
+
         public override bool VerifySuccess()
         {
-            bool needsValidation = (KeyCode == VK_F12 && ExpectZChange) ||
-                                  ((KeyCode == VK_F7 || KeyCode == VK_F8) && ExpectXChange);
+            bool needsSpecialValidation = (KeyCode == VK_F12 && ExpectZChange) ||
+                                         ((KeyCode == VK_F7 || KeyCode == VK_F8) && ExpectXChange);
+            bool needsPositionValidation = !needsSpecialValidation &&
+                                          (RequiredX.HasValue || RequiredY.HasValue || RequiredZ.HasValue);
 
-            if (!needsValidation)
+            if (!needsSpecialValidation && !needsPositionValidation)
             {
                 // For normal hotkey actions, just wait the delay
                 if (DelayMs > 0)
@@ -936,6 +1054,10 @@ class Program
                 string spellName = KeyCode == VK_F7 ? "bring me to east" : "bring me to centre";
                 baseDescription += $" ({spellName} with X coordinate verification - min {MinXChange} squares)";
             }
+            else if (RequiredX.HasValue || RequiredY.HasValue || RequiredZ.HasValue)
+            {
+                baseDescription += $" (with position validation: {RequiredX}, {RequiredY}, {RequiredZ})";
+            }
 
             return baseDescription;
         }
@@ -958,6 +1080,9 @@ class Program
                 case VK_F12: return "F12";
                 case VK_F13: return "F13";
                 case VK_F14: return "F14";
+                case LEFT_BRACKET: return "[";
+                case RIGHT_BRACKET: return "]";
+                case BACKSLASH: return "\\";
                 default: return $"Key {keyCode}";
             }
         }
@@ -1170,7 +1295,8 @@ class Program
         actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
 
-        actionSequence.Add(new HotkeyAction(VK_F4, 800)); //money withdraw
+        actionSequence.Add(new HotkeyAction(VK_F4, 800, false, false, false, 20,
+                                       baseX + 39, baseY - 6, baseZ - 1)); //money withdraw
 
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
@@ -1179,14 +1305,16 @@ class Program
 
 
 
-        actionSequence.Add(new HotkeyAction(VK_F9, 800)); //fluids
+        actionSequence.Add(new HotkeyAction(VK_F9, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
 
         for (int i = 0; i < 15; i++)
         {
             actionSequence.Add(new FluidDragAction(1));
         }
 
-        actionSequence.Add(new HotkeyAction(VK_F5, 800)); //blanks
+        actionSequence.Add(new HotkeyAction(VK_F5, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //blanks
 
 
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
@@ -1271,14 +1399,16 @@ class Program
         actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
 
-        actionSequence.Add(new HotkeyAction(LEFT_BRACKET, 800)); //money withdraw
+        actionSequence.Add(new HotkeyAction(LEFT_BRACKET, 800, false, false, false, 20,
+                                       baseX + 39, baseY - 6, baseZ - 1)); //money
 
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
         actionSequence.Add(new RightClickAction(200));
         actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
 
-        actionSequence.Add(new HotkeyAction(RIGHT_BRACKET, 800)); //fluids
+        actionSequence.Add(new HotkeyAction(RIGHT_BRACKET, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
 
         for (int i = 0; i < 4; i++)
         {
@@ -1376,21 +1506,24 @@ class Program
         actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
 
-        actionSequence.Add(new HotkeyAction(VK_F4, 800)); //money withdraw
+        actionSequence.Add(new HotkeyAction(VK_F4, 800, false, false, false, 20,
+                                       baseX + 39, baseY - 6, baseZ - 1)); //money withdraw
 
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
         actionSequence.Add(new RightClickAction(200));
         actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
 
-        actionSequence.Add(new HotkeyAction(VK_F9, 800)); //fluids
+        actionSequence.Add(new HotkeyAction(VK_F9, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
 
         for (int i = 0; i < 15; i++)
         {
             actionSequence.Add(new FluidDragAction(1));
         }
 
-        actionSequence.Add(new HotkeyAction(VK_F5, 800)); //blanks
+        actionSequence.Add(new HotkeyAction(VK_F5, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //blanks
 
 
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
@@ -1474,7 +1607,8 @@ class Program
         actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
 
-        actionSequence.Add(new HotkeyAction(VK_F4, 800)); //money withdraw
+        actionSequence.Add(new HotkeyAction(VK_F4, 800, false, false, false, 20,
+                                       baseX + 39, baseY - 6, baseZ - 1)); //money withdraw
 
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
@@ -1483,7 +1617,8 @@ class Program
 
 
 
-        actionSequence.Add(new HotkeyAction(VK_F9, 800)); //fluids
+        actionSequence.Add(new HotkeyAction(VK_F9, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
 
 
         for (int i = 0; i < 15; i++)
@@ -1491,7 +1626,8 @@ class Program
             actionSequence.Add(new FluidDragAction(1));
         }
 
-        actionSequence.Add(new HotkeyAction(VK_F5, 800)); //blanks
+        actionSequence.Add(new HotkeyAction(VK_F5, 800, false, false, false, 20,
+                                       baseX + 24, baseY - 6, baseZ - 2)); //blanks
 
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
         actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
