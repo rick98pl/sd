@@ -725,7 +725,9 @@ class Program
             int originalX = currentX;
             int originalY = currentY;
             int originalZ = currentZ;
+            double originalCAP = curCAP; // Store initial CAP value
             Debugger($"Original position: ({originalX}, {originalY}, {originalZ})");
+            Debugger($"Original CAP value: {originalCAP:F1}");
 
             int maxAttempts = MaxRetries;
             int attempt = 1;
@@ -798,19 +800,47 @@ class Program
                     }
                 }
 
+                // Store CAP value before key press
+                ReadMemoryValues();
+                double initialCAP = curCAP;
+                Debugger($"[{keyName}] CAP value before key press: {initialCAP:F1}");
+
                 // Execute the hotkey
                 Debugger($"Attempt {attempt}/{maxAttempts} - Pressing {keyName} at position ({currentX}, {currentY}, {currentZ})");
                 SendKeyPress(KeyCode);
 
                 // Wait for the action to complete
+                Thread.Sleep(1000);
                 Thread.Sleep(DelayMs);
 
-                // Return success after successful key press
-                Debugger($"Success! {keyName} pressed at required position");
-                return true;
+                // Check if CAP value changed
+                ReadMemoryValues();
+                double newCAP = curCAP;
+                bool capChanged = Math.Abs(newCAP - initialCAP) > 1;
+
+                Debugger($"[{keyName}] CAP value after key press: {newCAP:F1}, Changed: {capChanged}");
+
+                if (capChanged)
+                {
+                    // Success if CAP changed
+                    Debugger($"Success! {keyName} pressed at required position and CAP value changed");
+                    return true;
+                }
+                else
+                {
+                    // CAP didn't change, retry
+                    Debugger($"[{keyName}] CAP value didn't change on attempt {attempt}, retrying");
+                    attempt++;
+
+                    // Wait before next retry if we have more attempts left
+                    if (attempt <= maxAttempts)
+                    {
+                        Thread.Sleep(500);
+                    }
+                }
             }
 
-            Debugger($"Failed to press {keyName} at required position after {maxAttempts} attempts");
+            Debugger($"Failed to press {keyName} with CAP validation after {maxAttempts} attempts");
             return false;
         }
 
@@ -2743,6 +2773,100 @@ class Program
         );
     }
 
+    static double curCAP = 0;
+    static IntPtr CAP_BASE_POINTER = (IntPtr)0x00943CC4; // Base pointer (from RealeraDX exe)
+    static int CAP_OFFSET1 = 0x64;
+    static int CAP_OFFSET2 = 0x8;
+    static int CAP_OFFSET3 = 0x28;
+    static int CAP_OFFSET4 = 0x14;
+    static int CAP_OFFSET5 = 0x14;
+    static int CAP_OFFSET6 = 0x1C;
+    static int CAP_OFFSET7 = 0xBA0;
+    static double ReadCAPValue()
+    {
+        try
+        {
+            // Define the offset chain
+            int[] offsetChain = new int[]
+            {
+            CAP_OFFSET1,      // 0x64
+            CAP_OFFSET2,      // 0x8
+            CAP_OFFSET3,      // 0x28
+            CAP_OFFSET4,      // 0x14
+            CAP_OFFSET5,      // 0x14
+            CAP_OFFSET6,      // 0x1C
+            CAP_OFFSET7,      // 0xBA0
+            };
+
+            return ReadMultiLevelPointerDouble(CAP_BASE_POINTER, offsetChain);
+        }
+        catch (Exception ex)
+        {
+            Debugger($"Error reading CAP value: {ex.Message}");
+            return 0;
+        }
+    }
+
+    static double ReadMultiLevelPointerDouble(IntPtr basePointer, params int[] offsets)
+    {
+        try
+        {
+            // Start with the base pointer address from module
+            IntPtr address = IntPtr.Add(moduleBase, (int)basePointer);
+            byte[] buffer = new byte[4];
+
+            // Read the initial pointer value
+            if (!ReadProcessMemory(processHandle, address, buffer, 4, out _))
+            {
+                Debugger($"Failed to read base pointer at {address.ToString("X")}");
+                return 0;
+            }
+
+            // Get the address from the buffer
+            IntPtr currentAddress = (IntPtr)BitConverter.ToInt32(buffer, 0);
+
+            // Follow each offset except the last one
+            for (int i = 0; i < offsets.Length - 1; i++)
+            {
+                // Add the offset to the current address
+                currentAddress = IntPtr.Add(currentAddress, offsets[i]);
+
+                // Read the next address
+                if (!ReadProcessMemory(processHandle, currentAddress, buffer, 4, out _))
+                {
+                    Debugger($"Failed to read pointer at offset {i} ({offsets[i].ToString("X")}) - address {currentAddress.ToString("X")}");
+                    return 0;
+                }
+
+                // Update the current address
+                currentAddress = (IntPtr)BitConverter.ToInt32(buffer, 0);
+
+                // Debug the pointer chain
+                Debugger($"Pointer level {i + 1}: Base + 0x{offsets[i].ToString("X")} = 0x{currentAddress.ToString("X")}");
+            }
+
+            // Add the final offset to get to the actual value
+            currentAddress = IntPtr.Add(currentAddress, offsets[offsets.Length - 1]);
+
+            // Read the actual double value (8 bytes)
+            byte[] valueBuffer = new byte[8];
+            if (!ReadProcessMemory(processHandle, currentAddress, valueBuffer, 8, out _))
+            {
+                Debugger($"Failed to read final value at {currentAddress.ToString("X")}");
+                return 0;
+            }
+
+            // Return the double value
+            return BitConverter.ToDouble(valueBuffer, 0);
+        }
+        catch (Exception ex)
+        {
+            Debugger($"Error reading multi-level pointer: {ex.Message}");
+            return 0;
+        }
+    }
+
+
     static void ReadMemoryValues()
     {
         curHP = ReadDouble(HP_OFFSET);
@@ -2751,6 +2875,9 @@ class Program
         maxMana = ReadDouble(MAX_MANA_OFFSET);
         curSoul = ReadDouble(SOUL_OFFSET);
 
+        // Add these lines to read CAP values
+        curCAP = ReadCAPValue();
+
         currentX = ReadInt32(POSITION_X_OFFSET);
         currentY = ReadInt32(POSITION_Y_OFFSET);
         currentZ = ReadInt32(POSITION_Z_OFFSET);
@@ -2758,6 +2885,9 @@ class Program
         targetId = ReadInt32(TARGET_ID_OFFSET);
         invisibilityCode = ReadIntFromPointerOffset(INVIS_OFFSET);
         speed = ReadIntFromPointerOffset(SPEED_OFFSET);
+
+        // Add debug output for CAP (you can remove this later)
+        Debugger($"CAP: {curCAP:F1}");
     }
 
 
