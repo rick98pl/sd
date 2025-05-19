@@ -148,6 +148,7 @@ class Program
     const int VK_F14 = 0x7D;
     const int LEFT_BRACKET = 0xDB;   // [ { key
     const int RIGHT_BRACKET = 0xDD;   // ] } key
+    const int TILDA = 0xC0;   // ] } key
     const int BACKSLASH = 0xDC;   // \ | key
     const int VK_LEFT = 0x41;
     const int VK_UP = 0x57;
@@ -816,7 +817,7 @@ class Program
                 // Check if CAP value changed
                 ReadMemoryValues();
                 double newCAP = curCAP;
-                bool capChanged = Math.Abs(newCAP - initialCAP) > 1;
+                bool capChanged = Math.Abs(newCAP - initialCAP) >= 1;
 
                 Debugger($"[{keyName}] CAP value after key press: {newCAP:F1}, Changed: {capChanged}");
 
@@ -1113,6 +1114,7 @@ class Program
                 case LEFT_BRACKET: return "[";
                 case RIGHT_BRACKET: return "]";
                 case BACKSLASH: return "\\";
+                case TILDA: return "`";
                 default: return $"Key {keyCode}";
             }
         }
@@ -1266,109 +1268,6 @@ class Program
 
     // Static array of actions
     static List<Action> actionSequence = new List<Action>();
-
-    static void tarantulaSeqeunce()
-    {
-        // Clear any existing actions
-        actionSequence.Clear();
-
-        //// Base coordinates
-        int baseX = 32597, baseY = 32747, baseZ = 7;
-
-
-        actionSequence.Add(new FightTarantulasAction());
-        actionSequence.Add(new HotkeyAction(VK_F12, 800, true, true, false, 20, 32758, 32791, 8)); //exani tera with position validation
-
-        actionSequence.Add(new MoveAction(32758, 32793, 7));
-        actionSequence.Add(new MoveAction(32754, 32790, 7));
-
-        actionSequence.Add(new MoveAction(32757, 32788, 7));
-        actionSequence.Add(new MoveAction(32757, 32784, 7));
-        actionSequence.Add(new MoveAction(32755, 32780, 7));
-        actionSequence.Add(new MoveAction(32751, 32777, 7));
-        actionSequence.Add(new MoveAction(32746, 32774, 7));
-        actionSequence.Add(new MoveAction(32741, 32771, 7));
-        actionSequence.Add(new MoveAction(32735, 32770, 7));
-        actionSequence.Add(new MoveAction(32730, 32773, 7));
-        actionSequence.Add(new MoveAction(32725, 32775, 7));
-        actionSequence.Add(new MoveAction(32721, 32775, 7));
-        actionSequence.Add(new MoveAction(32716, 32775, 7));
-        actionSequence.Add(new MoveAction(32710, 32775, 7));
-        actionSequence.Add(new MoveAction(32703, 32776, 7));
-        actionSequence.Add(new MoveAction(32697, 32777, 7));
-        actionSequence.Add(new MoveAction(32691, 32777, 7));
-        actionSequence.Add(new MoveAction(32685, 32775, 7));
-        actionSequence.Add(new MoveAction(32681, 32776, 7));
-
-
-
-        actionSequence.Add(new HotkeyAction(VK_F8, 800)); //bring me to centre
-
-
-        for (int i = 0; i < 4; i++)
-        {
-            actionSequence.Add(new FluidDragAction(1));
-        }
-
-
-        actionSequence.Add(new DragAction(DragAction.DragDirection.BackpackToGround,
-      DragAction.DragBackpack.MANAS, 20, 100)); //water
-
-        actionSequence.Add(new MoveAction(32622, 32769, 7));
-
-        actionSequence.Add(new MoveAction(baseX + 24, baseY + 19, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 21, baseY + 14, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY + 9, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 29, baseY + 5, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 31, baseY + 2, baseZ + 0));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Right, 200));
-        actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
-        actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
-
-        actionSequence.Add(new HotkeyAction(VK_F4, 800, false, false, false, 20,
-                                       baseX + 39, baseY - 6, baseZ - 1)); //money withdraw
-
-        actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
-        actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
-        actionSequence.Add(new RightClickAction(200));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
-
-
-
-        actionSequence.Add(new HotkeyAction(VK_F9, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
-
-        for (int i = 0; i < 15; i++)
-        {
-            actionSequence.Add(new FluidDragAction(1));
-        }
-
-        actionSequence.Add(new HotkeyAction(VK_F5, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //blanks
-
-
-        actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
-        actionSequence.Add(new MoveAction(baseX + 33, baseY + 0, baseZ - 1));
-        actionSequence.Add(new MoveAction(baseX + 32, baseY + 1, baseZ - 1));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
-        actionSequence.Add(new MoveAction(baseX + 25, baseY + 8, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 20, baseY + 13, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 13, baseY + 15, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 8, baseY + 10, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 1, baseY + 5, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 0, baseY + 3, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX - 2, baseY - 2, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 2, baseY - 4, baseZ + 0));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
-
-        Debugger($"Initialized action sequence with {actionSequence.Count} actions:");
-        for (int i = 0; i < actionSequence.Count; i++)
-        {
-            Debugger($"  {i + 1}: {actionSequence[i].GetDescription()}");
-        }
-    }
-
     static void InitializeActionSequence()
     {
         actionSequence.Clear();
@@ -1379,114 +1278,120 @@ class Program
         //{
         //    actionSequence.Add(new ScanBackpackAction());
         //}
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
-
-
-        actionSequence.Add(new MoveAction(baseX + 0, baseY + 0, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 0, baseY + 5, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 7, baseY + 6, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 9, baseY + 11, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 15, baseY + 15, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 22, baseY + 15, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY + 20, baseZ + 0));
-
-
-        actionSequence.Add(new MoveAction(32624, 32769, 7));
-        actionSequence.Add(new MoveAction(32631, 32769, 7));
-        actionSequence.Add(new MoveAction(32638, 32769, 7));
-
-        actionSequence.Add(new RightClickAction(200));
-
-        actionSequence.Add(new MoveAction(32635, 32773, 6));
-        actionSequence.Add(new MoveAction(32630, 32773, 6));
-        actionSequence.Add(new MoveAction(32627, 32772, 6));
-
-
-        actionSequence.Add(new DragAction(DragAction.DragDirection.BackpackToGround,
-            DragAction.DragBackpack.MANAS, 20, 100)); //water
-
-        actionSequence.Add(new MoveAction(32625, 32769, 6));
-        actionSequence.Add(new DragAction(DragAction.DragDirection.BackpackToGround,
-            DragAction.DragBackpack.SD, 2, 100));
-
-        actionSequence.Add(new MoveAction(32627, 32772, 6));
-        actionSequence.Add(new MoveAction(32632, 32773, 6));
-        actionSequence.Add(new MoveAction(32638, 32773, 6));
-        actionSequence.Add(new MoveAction(32638, 32770, 6));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Up, 200)); //down the ladder
-
-
-        actionSequence.Add(new MoveAction(32631, 32768, 7));
-        actionSequence.Add(new MoveAction(32624, 32769, 7));
-
-
-        actionSequence.Add(new MoveAction(baseX + 24, baseY + 19, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 21, baseY + 14, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY + 9, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 29, baseY + 5, baseZ + 0));
-        actionSequence.Add(new MoveAction(baseX + 31, baseY + 2, baseZ + 0));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Right, 200));
-        actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
-        actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
-
-        actionSequence.Add(new HotkeyAction(LEFT_BRACKET, 800, false, false, false, 20,
-                                       baseX + 39, baseY - 6, baseZ - 1)); //money
-
-        actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
-        actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
-        actionSequence.Add(new RightClickAction(200));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
-
-        actionSequence.Add(new HotkeyAction(RIGHT_BRACKET, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
-
-        for (int i = 0; i < 4; i++)
+        ReadMemoryValues();
+        if (currentZ != 8)
         {
-            actionSequence.Add(new FluidDragAction(1));
+            actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
+
+
+            actionSequence.Add(new MoveAction(baseX + 0, baseY + 0, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 0, baseY + 5, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 7, baseY + 6, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 9, baseY + 11, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 15, baseY + 15, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 22, baseY + 15, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 24, baseY + 20, baseZ + 0));
+
+
+            actionSequence.Add(new MoveAction(32624, 32769, 7));
+            actionSequence.Add(new MoveAction(32631, 32769, 7));
+            actionSequence.Add(new MoveAction(32638, 32769, 7));
+
+            actionSequence.Add(new RightClickAction(200));
+
+            actionSequence.Add(new MoveAction(32635, 32773, 6));
+            actionSequence.Add(new MoveAction(32630, 32773, 6));
+            actionSequence.Add(new MoveAction(32627, 32772, 6));
+
+
+            actionSequence.Add(new DragAction(DragAction.DragDirection.BackpackToGround,
+                DragAction.DragBackpack.MANAS, 20, 100)); //water
+
+            actionSequence.Add(new MoveAction(32625, 32769, 6));
+            actionSequence.Add(new DragAction(DragAction.DragDirection.BackpackToGround,
+                DragAction.DragBackpack.SD, 2, 100));
+
+            actionSequence.Add(new MoveAction(32627, 32772, 6));
+            actionSequence.Add(new MoveAction(32632, 32773, 6));
+            actionSequence.Add(new MoveAction(32638, 32773, 6));
+            actionSequence.Add(new MoveAction(32638, 32770, 6));
+            actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Up, 200)); //down the ladder
+
+
+            actionSequence.Add(new MoveAction(32631, 32768, 7));
+            actionSequence.Add(new MoveAction(32624, 32769, 7));
+
+
+            actionSequence.Add(new MoveAction(baseX + 24, baseY + 19, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 21, baseY + 14, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 24, baseY + 9, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 29, baseY + 5, baseZ + 0));
+            actionSequence.Add(new MoveAction(baseX + 31, baseY + 2, baseZ + 0));
+            actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Right, 200));
+            actionSequence.Add(new MoveAction(baseX + 35, baseY - 3, baseZ - 1));
+            actionSequence.Add(new MoveAction(baseX + 39, baseY - 6, baseZ - 1));
+
+            actionSequence.Add(new HotkeyAction(LEFT_BRACKET, 800, false, false, false, 20,
+                                           baseX + 39, baseY - 6, baseZ - 1)); //money
+
+            actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
+            actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
+            actionSequence.Add(new RightClickAction(200));
+            actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
+
+            actionSequence.Add(new HotkeyAction(RIGHT_BRACKET, 800, false, false, false, 20,
+                                           baseX + 24, baseY - 6, baseZ - 2)); //fluids
+
+            for (int i = 0; i < 4; i++)
+            {
+                actionSequence.Add(new FluidDragAction(1));
+            }
+
+            actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
+            actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
+            actionSequence.Add(new MoveAction(baseX + 33, baseY + 0, baseZ - 1));
+            actionSequence.Add(new MoveAction(baseX + 32, baseY + 1, baseZ - 1));
+            actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
+
+            actionSequence.Add(new MoveAction(32629, 32754, 7));
+            actionSequence.Add(new MoveAction(32629, 32758, 7));
+            actionSequence.Add(new MoveAction(32624, 32762, 7));
+            actionSequence.Add(new MoveAction(32621, 32766, 7));
+            actionSequence.Add(new MoveAction(32621, 32770, 7));
+            actionSequence.Add(new MoveAction(32627, 32769, 7));
+
+
+            actionSequence.Add(new HotkeyAction(VK_F7, 800)); //bring me to east
+
+
+
+            actionSequence.Add(new MoveAction(32685, 32775, 7));
+            actionSequence.Add(new MoveAction(32691, 32777, 7));
+            actionSequence.Add(new MoveAction(32697, 32777, 7));
+            actionSequence.Add(new MoveAction(32703, 32776, 7));
+            actionSequence.Add(new MoveAction(32710, 32775, 7));
+            actionSequence.Add(new MoveAction(32716, 32775, 7));
+            actionSequence.Add(new MoveAction(32721, 32775, 7));
+            actionSequence.Add(new MoveAction(32725, 32775, 7));
+            actionSequence.Add(new MoveAction(32730, 32773, 7));
+            actionSequence.Add(new MoveAction(32735, 32770, 7));
+            actionSequence.Add(new MoveAction(32741, 32771, 7));
+            actionSequence.Add(new MoveAction(32746, 32774, 7));
+            actionSequence.Add(new MoveAction(32751, 32777, 7));
+            actionSequence.Add(new MoveAction(32755, 32780, 7));
+            actionSequence.Add(new MoveAction(32757, 32784, 7));
+            actionSequence.Add(new MoveAction(32757, 32788, 7));
+
+            actionSequence.Add(new MoveAction(32756, 32791, 7));
+            actionSequence.Add(new MoveAction(32757, 32791, 7));
+
+
+            actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Right, 200)); //down the hole
+
+            ////HERE SHOULD FIGHT TARANTULAS UNTIL 200 SOUL
+            ///
         }
 
-        actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
-        actionSequence.Add(new MoveAction(baseX + 33, baseY + 0, baseZ - 1));
-        actionSequence.Add(new MoveAction(baseX + 32, baseY + 1, baseZ - 1));
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
-
-        actionSequence.Add(new MoveAction(32629, 32754, 7));
-        actionSequence.Add(new MoveAction(32629, 32758, 7));
-        actionSequence.Add(new MoveAction(32624, 32762, 7));
-        actionSequence.Add(new MoveAction(32621, 32766, 7));
-        actionSequence.Add(new MoveAction(32621, 32770, 7));
-        actionSequence.Add(new MoveAction(32627, 32769, 7));
-
-
-        actionSequence.Add(new HotkeyAction(VK_F7, 800)); //bring me to east
-
-
-
-        actionSequence.Add(new MoveAction(32685, 32775, 7));
-        actionSequence.Add(new MoveAction(32691, 32777, 7));
-        actionSequence.Add(new MoveAction(32697, 32777, 7));
-        actionSequence.Add(new MoveAction(32703, 32776, 7));
-        actionSequence.Add(new MoveAction(32710, 32775, 7));
-        actionSequence.Add(new MoveAction(32716, 32775, 7));
-        actionSequence.Add(new MoveAction(32721, 32775, 7));
-        actionSequence.Add(new MoveAction(32725, 32775, 7));
-        actionSequence.Add(new MoveAction(32730, 32773, 7));
-        actionSequence.Add(new MoveAction(32735, 32770, 7));
-        actionSequence.Add(new MoveAction(32741, 32771, 7));
-        actionSequence.Add(new MoveAction(32746, 32774, 7));
-        actionSequence.Add(new MoveAction(32751, 32777, 7));
-        actionSequence.Add(new MoveAction(32755, 32780, 7));
-        actionSequence.Add(new MoveAction(32757, 32784, 7));
-        actionSequence.Add(new MoveAction(32757, 32788, 7));
-
-        actionSequence.Add(new MoveAction(32756, 32791, 7));
-        actionSequence.Add(new MoveAction(32757, 32791, 7));
-
-
-        actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Right, 200)); //down the hole
-
-        ////HERE SHOULD FIGHT TARANTULAS UNTIL 200 SOUL
         actionSequence.Add(new FightTarantulasAction());
         actionSequence.Add(new HotkeyAction(VK_F12, 800, true, true, false, 20, 32758, 32791, 8)); //exani tera with position validation
 
@@ -1538,6 +1443,9 @@ class Program
 
         actionSequence.Add(new HotkeyAction(VK_F4, 800, false, false, false, 20,
                                        baseX + 39, baseY - 6, baseZ - 1)); //money withdraw
+
+        actionSequence.Add(new HotkeyAction(TILDA, 800, false, false, false, 20,
+                                       baseX + 39, baseY - 6, baseZ - 1)); //deposit
 
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
@@ -1639,6 +1547,9 @@ class Program
 
         actionSequence.Add(new HotkeyAction(VK_F4, 800, false, false, false, 20,
                                        baseX + 39, baseY - 6, baseZ - 1)); //money withdraw
+
+        actionSequence.Add(new HotkeyAction(TILDA, 800, false, false, false, 20,
+                                       baseX + 39, baseY - 6, baseZ - 1)); //deposit
 
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
@@ -2369,7 +2280,6 @@ class Program
         StartMotionDetectionThread();
         StartSoulPositionMonitorThread();
 
-
         while (programRunning)
         {
 
@@ -2412,7 +2322,7 @@ class Program
 
                 if (currentZ == 8)
                 {
-                    tarantulaSeqeunce();
+                    InitializeActionSequence();
                     ExecuteActionSequence();
                 }
 
@@ -2842,7 +2752,7 @@ class Program
                 currentAddress = (IntPtr)BitConverter.ToInt32(buffer, 0);
 
                 // Debug the pointer chain
-                Debugger($"Pointer level {i + 1}: Base + 0x{offsets[i].ToString("X")} = 0x{currentAddress.ToString("X")}");
+                //Debugger($"Pointer level {i + 1}: Base + 0x{offsets[i].ToString("X")} = 0x{currentAddress.ToString("X")}");
             }
 
             // Add the final offset to get to the actual value
@@ -2887,7 +2797,7 @@ class Program
         speed = ReadIntFromPointerOffset(SPEED_OFFSET);
 
         // Add debug output for CAP (you can remove this later)
-        Debugger($"CAP: {curCAP:F1}");
+        //Debugger($"CAP: {curCAP:F5}");
     }
 
 
