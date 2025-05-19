@@ -1337,10 +1337,10 @@ class Program
             actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
             actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
             actionSequence.Add(new RightClickAction(200));
-            actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
+            actionSequence.Add(new MoveAction(baseX + 24, baseY - 6 + 1, baseZ - 2));
 
             actionSequence.Add(new HotkeyAction(RIGHT_BRACKET, 800, false, false, false, 20,
-                                           baseX + 24, baseY - 6, baseZ - 2)); //fluids
+                                           baseX + 24, baseY - 6 + 1, baseZ - 2)); //fluids
 
             for (int i = 0; i < 4; i++)
             {
@@ -1450,10 +1450,10 @@ class Program
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
         actionSequence.Add(new RightClickAction(200));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
+        actionSequence.Add(new MoveAction(baseX + 24, baseY - 6 + 1, baseZ - 2));
 
         actionSequence.Add(new HotkeyAction(VK_F9, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
+                                       baseX + 24, baseY - 6 + 1 , baseZ - 2)); //fluids
 
         for (int i = 0; i < 15; i++)
         {
@@ -1461,7 +1461,7 @@ class Program
         }
 
         actionSequence.Add(new HotkeyAction(VK_F5, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //blanks
+                                       baseX + 24, baseY - 6 + 1, baseZ - 2)); //blanks
 
 
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
@@ -1554,12 +1554,12 @@ class Program
         actionSequence.Add(new MoveAction(baseX + 33, baseY - 3, baseZ - 1));
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 5, baseZ - 1));
         actionSequence.Add(new RightClickAction(200));
-        actionSequence.Add(new MoveAction(baseX + 24, baseY - 6, baseZ - 2));
+        actionSequence.Add(new MoveAction(baseX + 24, baseY - 6 + 1, baseZ - 2));
 
 
 
         actionSequence.Add(new HotkeyAction(VK_F9, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //fluids
+                                       baseX + 24, baseY - 6 + 1, baseZ - 2)); //fluids
 
 
         for (int i = 0; i < 15; i++)
@@ -1568,7 +1568,7 @@ class Program
         }
 
         actionSequence.Add(new HotkeyAction(VK_F5, 800, false, false, false, 20,
-                                       baseX + 24, baseY - 6, baseZ - 2)); //blanks
+                                       baseX + 24, baseY - 6 + 1, baseZ - 2)); //blanks
 
         actionSequence.Add(new MoveAction(baseX + 29, baseY - 6, baseZ - 2));
         actionSequence.Add(new ArrowAction(ArrowAction.ArrowDirection.Down, 200));
