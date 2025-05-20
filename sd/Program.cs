@@ -1694,6 +1694,22 @@ class Program
                 {
                     Debugger($"Action {currentActionIndex + 1} failed after {action.MaxRetries} attempts. Exiting program.");
                     programRunning = false;
+
+                    // FORCEFULLY close the game process and window before exiting
+                    ForceCloseGameProcessAndWindow();
+
+                    // Set the global flag to stop the program
+                    programRunning = false;
+                    cancellationTokenSource.Cancel();
+
+                    // Stop other threads
+                    StopMotionDetectionThread();
+                    StopSoulPositionMonitorThread();
+
+                    // Minimal delay before exit
+                    Thread.Sleep(500);
+                    Environment.Exit(0);
+
                     break;
                 }
 
@@ -3371,7 +3387,7 @@ class Program
 
         try
         {
-            while (soulPositionMonitorRunning && programRunning)
+            while (soulPositionMonitorRunning)
             {
                 try
                 {
