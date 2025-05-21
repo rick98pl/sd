@@ -3737,7 +3737,7 @@ class Program
                     Coordinate candidate = waypoints[candidateIndex];
                     int distanceX = Math.Abs(candidate.X - currentX);
                     int distanceY = Math.Abs(candidate.Y - currentY);
-                    if (distanceX <= 5 && distanceY <= 5 && candidate.Z == currentZ)
+                    if (distanceX <= 4 && distanceY <= 4 && candidate.Z == currentZ)
                     {
                         targetWaypoint = candidate;
                         targetIndex = candidateIndex;
@@ -3798,7 +3798,7 @@ class Program
                     Coordinate candidate = waypoints[candidateIndex];
                     int distanceXx = Math.Abs(candidate.X - currentX);
                     int distanceYy = Math.Abs(candidate.Y - currentY);
-                    if (distanceXx <= 5 && distanceYy <= 5 && candidate.Z == currentZ)
+                    if (distanceXx <= 4 && distanceYy <= 4 && candidate.Z == currentZ)
                     {
                         targetWaypoint = candidate;
                         targetIndex = candidateIndex;
@@ -3834,7 +3834,7 @@ class Program
             Coordinate firstWaypoint = waypoints[0];
             int distanceX = Math.Abs(firstWaypoint.X - currentX);
             int distanceY = Math.Abs(firstWaypoint.Y - currentY);
-            if (distanceX <= 5 && distanceY <= 5 && firstWaypoint.Z == currentZ)
+            if (distanceX <= 4 && distanceY <= 4 && firstWaypoint.Z == currentZ)
             {
                 bool moveSuccessful = AttemptMoveWithBlocking(firstWaypoint, 0, waypoints);
 
@@ -3916,7 +3916,7 @@ class Program
                 Coordinate candidate = waypoints[checkIndex];
                 int distanceX = Math.Abs(candidate.X - currentX);
                 int distanceY = Math.Abs(candidate.Y - currentY);
-                if (distanceX <= 5 && distanceY <= 5 && candidate.Z == currentZ)
+                if (distanceX <= 4 && distanceY <= 4 && candidate.Z == currentZ)
                 {
                     if (i > maxProgress)
                     {
@@ -3945,7 +3945,7 @@ class Program
                     Coordinate candidate = waypoints[checkIndex];
                     int distanceX = Math.Abs(candidate.X - currentX);
                     int distanceY = Math.Abs(candidate.Y - currentY);
-                    if (distanceX <= 5 && distanceY <= 5 && candidate.Z == currentZ)
+                    if (distanceX <= 4 && distanceY <= 4 && candidate.Z == currentZ)
                     {
                         bestTarget = candidate;
                         bestIndex = checkIndex;
